@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Clock</title>
+  <style>
+    /* Centering and Styling */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #333;
+      color: white;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      width: 220px;
+      height: 460px;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .timer-display {
+      text-align: center;
+      padding: 30px;
+      font-size: 2em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .time-setter {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .time-setter h3 {
+      font-size: 1em;
+    }
+
+    .time-setter div {
+      display: flex;
+      align-items: center;
+    }
+
+    .time-setter button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5em;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .time-setter button:disabled {
+      color: rgba(255, 255, 255, 0.5);
+      cursor: not-allowed;
+    }
+
+    .time-setter span {
+      font-size: 1.2em;
+      margin: 0 5px;
+    }
+
+    .control-buttons button {
+      background-color: #4CAF50;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 1em;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .control-buttons button:hover {
+      background-color: #45a049;
+    }
+
+    .reset-btn {
+      background-color: #f44336;
+    }
+
+    .reset-btn:hover {
+      background-color: #e53935;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Countdown Display -->
+    <div class="timer-display" id="timerDisplay">25:00</div>
+
+    <!-- Controls for Session, Break, Start, and Reset -->
+    <div class="controls">
+      <div class="time-setter">
+        <h3>Session Time</h3>
+        <div>
+          <button id="sessionDecrease">-</button>
+          <span id="sessionTime">25</span> min
+          <button id="sessionIncrease">+</button>
+        </div>
+      </div>
+
+      <div class="time-setter">
+        <h3>Break Time</h3>
+        <div>
+          <button id="breakDecrease">-</button>
+          <span id="breakTime">5</span> min
+          <button id="breakIncrease">+</button>
+        </div>
+      </div>
+
+      <div class="control-buttons">
+        <button id="startStopBtn">Start</button>
+        <button id="resetBtn" class="reset-btn">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // JavaScript for Pomodoro Clock functionality
+
+    let sessionTime = 25;
+    let breakTime = 5;
+    let timeRemaining = sessionTime * 60;
+    let isRunning = false;
+    let isSession = true;
+    let timerInterval;
+
+    const timerDisplay = document.getElementById("timerDisplay");
+    const sessionTimeDisplay = document.getElementById("sessionTime");
+    const breakTimeDisplay = document.getElementById("breakTime");
+    const startStopBtn = document.getElementById("startStopBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const sessionDecrease = document.getElementById("sessionDecrease");
+    const sessionIncrease = document.getElementById("sessionIncrease");
+    const breakDecrease = document.getElementById("breakDecrease");
+    const breakIncrease = document.getElementById("breakIncrease");
+
+    // Update Display
+    function updateDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      timerDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    // Toggle Buttons
+    function toggleTimeSetters(disabled) {
+      sessionDecrease.disabled = disabled;
+      sessionIncrease.disabled = disabled;
+      breakDecrease.disabled = disabled;
+      breakIncrease.disabled = disabled;
+    }
+
+    // Start the Timer
+    function startTimer() {
+      isRunning = true;
+      startStopBtn.textContent = "Stop";
+      toggleTimeSetters(true);
+
+      timerInterval = setInterval(() => {
+        if (timeRemaining > 0) {
+          timeRemaining--;
+          updateDisplay();
+        } else {
+          isSession = !isSession;
+          timeRemaining = (isSession ? sessionTime : breakTime) * 60;
+          updateDisplay();
+        }
+      }, 1000);
+    }
+
+    // Stop the Timer
+    function stopTimer() {
+      isRunning = false;
+      startStopBtn.textContent = "Start";
+      toggleTimeSetters(false);
+      clearInterval(timerInterval);
+    }
+
+    // Reset the Timer
+    function resetTimer() {
+      stopTimer();
+      isSession = true;
+      sessionTime = 25;
+      breakTime = 5;
+      timeRemaining = sessionTime * 60;
+      sessionTimeDisplay.textContent = sessionTime;
+      breakTimeDisplay.textContent = breakTime;
+      updateDisplay();
+    }
+
+    // Start/Stop Button Click Event
+    startStopBtn.addEventListener("click", () => {
+      if (isRunning) {
+        stopTimer();
+      } else {
+        startTimer();
+      }
+    });
+
+    // Reset Button Click Event
+    resetBtn.addEventListener("click", resetTimer);
+
+    // Session Time Adjustment
+    sessionIncrease.addEventListener("click", () => {
+      sessionTime++;
+      sessionTimeDisplay.textContent = sessionTime;
+      if (isSession) {
+        timeRemaining = sessionTime * 60;
+        updateDisplay();
+      }
+    });
+
+    sessionDecrease.addEventListener("click", () => {
+      if (sessionTime > 1) {
+        sessionTime--;
+        sessionTimeDisplay.textContent = sessionTime;
+        if (isSession) {
+          timeRemaining = sessionTime * 60;
+          updateDisplay();
+        }
+      }
+    });
+
+    // Break Time Adjustment
+    breakIncrease.addEventListener("click", () => {
+      breakTime++;
+      breakTimeDisplay.textContent = breakTime;
+      if (!isSession) {
+        timeRemaining = breakTime * 60;
+        updateDisplay();
+      }
+    });
+
+    breakDecrease.addEventListener("click", () => {
+      if (breakTime > 1) {
+        breakTime--;
+        breakTimeDisplay.textContent = breakTime;
+        if (!isSession) {
+          timeRemaining = breakTime * 60;
+          updateDisplay();
+        }
+      }
+    });
+
+    // Initial Display Update
+    updateDisplay();
+  </script>
+
+</body>
+</html>
